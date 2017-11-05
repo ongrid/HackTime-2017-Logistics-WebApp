@@ -1,0 +1,25 @@
+{% extends 'logistapp/base.html' %}
+{% load static logistapp_filters %}
+
+{% block content %}
+    <div class="container">
+        <h3>Search postal item by ID</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input name="id" type="text" class="form-control" id="postal_item" placeholder="Postal item ID" required>
+            </div>
+            <button type="submit" class="btn btn-primary float-right">Search</button>
+        </form>
+        {% if error %}
+            <span style="color: red">{{ error }}</span>
+        {% endif %}
+        {% if item %}
+            <h4>Search results</h4>
+            <div class="search_result">
+                {% print_item item %}
+            </div>
+        {% endif %}
+    </div>
+    <br><br><br><br><br><br><br><br><br><br>
+{% endblock %}

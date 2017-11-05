@@ -1,0 +1,46 @@
+{% load logistapp_filters %}
+<h5>Postal item #{{ item.pk }}</h5>
+<table width="100%" class="table">
+    <tr>
+        <td>Item:</td>
+        <td>{{ item.name }}</td>
+    </tr>
+    <tr>
+        <td>From:</td>
+        <td>{{ item.sender }} ({{ item.address_from.name }}, index: {{ item.address_from.index }})</td>
+    </tr>
+    <tr>
+        <td>To:</td>
+        <td>{{ item.recipient }} ({{ item.address_to.name }}, index: {{ item.address_to.index }}))</td>
+    </tr>
+    <tr>
+        <td>Weight:</td>
+        <td>{{ item.weight }}</td>
+    </tr>
+    <tr>
+        <td>Status:</td>
+        <td {% if item.status == 'delivered' %}style="color: green" {% endif %}>{{ item.status | capfirst }}</td>
+    </tr>
+    <tr>
+        <td>Category:</td>
+        <td>{{ item.category }}</td>
+    </tr>
+    <tr>
+        <td>Path:</td>
+        {% with item.path.get_queryset as path %}
+            <td>
+                {% for item in path %}
+                    {{ item.type | get_elevation_type }}
+                    <span style="color: green">{{ item.post_office.name }} ({{ item.post_office.index }})</span>, {{ item.datetime | date:'r' }}<br/>
+                {% endfor %}
+            </td>
+        {% endwith %}
+    </tr>
+</table>
+{% if item.status == 'awaits' %}
+    <form action="{% url 'confirm_delivery' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="item_pk" value="{{ item.pk }}">
+        <button class="btn-primary btn">Confirm delivery</button>
+    </form>
+{% endif %}

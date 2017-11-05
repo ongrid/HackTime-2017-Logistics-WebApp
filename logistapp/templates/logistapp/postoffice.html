@@ -1,0 +1,51 @@
+{% extends 'logistapp/base.html' %}
+{% load static logistapp_filters %}
+{% block content %}
+    <div class="container">
+        <h3>Search postoffice by index</h3>
+        <form method="post" action="{% url 'post_office' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <input name="id" type="text" class="form-control" placeholder="Postoffice Index" required>
+            </div>
+            <button type="submit" class="btn btn-primary float-right">Search</button>
+        </form>
+        {% if error %}
+            <span style="color: red">{{ error }}</span>
+        {% endif %}
+        {% if postoffice %}
+            <h4>Search results</h4>
+            <div class="search_result">
+                <table class="table">
+                    <tr>
+                        <td>Post office:</td>
+                        <td>{{ postoffice.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Post office index:</td>
+                        <td>{{ postoffice.index }}</td>
+                    </tr>
+                </table>
+            </div>
+        {% endif %}
+        {% if items %}
+            <table class="table">
+                {% for item in items %}
+                    <tr>
+                        <td>
+                            <form action="{% url 'search' %}">
+                                <input type="hidden" name="id" value="{{ item.pk }}">
+                                <button type="submit" class="btn-link">{{ item }}</button>
+                            </form>
+                        </td>
+                        <td {% if item.status == 'delivered' %}style="color: green" {% endif %}>
+                            {{ item.status }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            No items at this post office
+        {% endif %}
+    </div>
+    <br><br><br><br><br><br><br><br><br><br>{% endblock %}
