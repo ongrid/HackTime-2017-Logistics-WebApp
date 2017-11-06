@@ -2,57 +2,26 @@
 {% load static logistapp_filters %}
 {% block content %}
     <div class="container">
+    <span style="color: red">{{ error }}</span>
         {% if added_item %}
             <h3>Your postal item successfully registered</h3>
-            <table class="table">
-                <tr>
-                    <td>Item ID:</td>
-                    <td>{{ added_item.pk }}</td>
-                </tr>
-                <tr>
-                    <td>Item name:</td>
-                    <td>{{ added_item.name }}</td>
-                </tr>
-                <tr>
-                    <td>From:</td>
-                    <td>{{ added_item.sender }} ({{ added_item.address_from.name }},
-                        index: {{ added_item.address_from.index }})
-                    </td>
-                </tr>
-                <tr>
-                    <td>To:</td>
-                    <td>{{ added_item.recipient }} ({{ added_item.address_to.name }},
-                        index: {{ added_item.address_to.index }})
-                    </td>
-                </tr>
-                <tr>
-                    <td>Weight:</td>
-                    <td>{{ added_item.weight }}</td>
-                </tr>
-                <tr>
-                    <td>Category:</td>
-                    <td>{{ added_item.category }}</td>
-                </tr>
-                <tr>
-                    <td>Status:</td>
-                    <td>{{ added_item.status }} {{ added_item.address_from.name }}</td>
-                </tr>
-            </table>
+            Your postal item registered with #{{ added_item }}
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         {% else %}
             <h3>Register new postal item</h3>
             <form method="post">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="name">Item name:</label>
-                    <input type="text" name="name" id="name" class="form-control">
+                    <input type="text" name="name" id="name" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="sender">Sender:</label>
-                    <input type="text" name="sender" id="sender" class="form-control">
+                    <input type="text" name="sender" id="sender" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="post_office_from">From Post Office:</label>
-                    <select name="post_office_from" id="post_office_from" class="form-control">
+                    <select name="post_office_from" id="post_office_from" class="form-control" required>
                         {% for item in stock_names %}
                             <option value="{{ item.index }}">{{ item.name }} ({{ item.address }})</option>
                         {% endfor %}
@@ -60,11 +29,11 @@
                 </div>
                 <div class="form-group">
                     <label for="recipient">Recipient:</label>
-                    <input type="text" name="recipient" id="recipient" class="form-control">
+                    <input type="text" name="recipient" id="recipient" class="form-control" required>
                 </div>
                 <div class="form-group">
                     <label for="post_office_from">To Post Office:</label>
-                    <select name="post_office_to" id="post_office_to" class="form-control">
+                    <select name="post_office_to" id="post_office_to" class="form-control" required>
                         {% for item in stock_names %}
                             <option value="{{ item.index }}">{{ item.name }} ({{ item.address }})</option>
                         {% endfor %}
@@ -72,7 +41,7 @@
                 </div>
                 <div class="form-group">
                     <label for="Weight">Weight:</label>
-                    <input type="text" name="weight" id="weight" class="form-control">
+                    <input type="text" name="weight" id="weight" class="form-control" required>
                 </div>
                 <button class="btn btn-primary">Save</button>
             </form>

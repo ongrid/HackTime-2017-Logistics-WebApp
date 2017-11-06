@@ -14,9 +14,9 @@
             <span style="color: red">{{ error }}</span>
         {% endif %}
         {% if item %}
-            <h4>Searching results</h4>
+            <h4>Search results</h4>
             <div class="search_result">
-                {% print_item item %}
+                {% print_item item path %}
             </div>
             <button class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Set arrival / departure
             </button>

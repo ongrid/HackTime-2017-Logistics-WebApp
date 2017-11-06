@@ -23,11 +23,9 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', logistapp_views.index, name='index'),
     url(r'^search/$', logistapp_views.search_item, name='search'),
+    url(r'^api/search/$', logistapp_views.search_item_api, name='search_item_api'),
     url(r'^post_office/$', logistapp_views.post_office, name='post_office'),
-    url(r'^confirm_delivery/$', logistapp_views.confirm_delivery, name='confirm_delivery'),
+    url(r'^api/post_office/$', logistapp_views.post_office_api, name='post_office_api'),
     url(r'^registration_post_item/$', logistapp_views.registration_post_item, name='registration_post_item'),
-    url(r'^arr_depa/$', logistapp_views.arr_depa, name='arr_depa'),
     url(r'^set_arr_dep/$', logistapp_views.set_arr_dep, name='set_arr_dep'),
-    # url(r'^api/add_new_elevation/', logistapp_views.add_elevation, name='add_elevation'),
-    # url(r'^api/add_new_item/', logistapp_views.new_item, name='new_item'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

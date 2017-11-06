@@ -2,12 +2,17 @@
 {% load static logistapp_filters %}
 
 {% block content %}
+    <div id="preloader">
+        <img src="{% static 'img/Blocks.svg' %}" alt="Загрузка">
+    <h2 id="text"></h2>
+    </div>
     <div class="container">
         <h3>Search postal item by ID</h3>
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <input name="id" type="text" class="form-control" id="postal_item" placeholder="Postal item ID" required>
+                <input name="id" type="text" class="form-control" id="postal_item" placeholder="Postal item ID"
+                       required>
             </div>
             <button type="submit" class="btn btn-primary float-right">Search</button>
         </form>
@@ -17,8 +22,32 @@
         {% if item %}
             <h4>Search results</h4>
             <div class="search_result">
-                {% print_item item %}
+                {% print_item item path %}
             </div>
+            <h5>Transfer</h5>
+            <form action="{% url 'set_arr_dep' %}" method="post">
+                <input type="hidden" name="item" value="{{ item_pk }}" id="item_pk">
+                <div class="form-group">
+                    <label for="from">From:</label>
+                    <select name="from" id="from" class="form-control">
+                        {% for i in post_offices %}
+                            <option value="{{ i.index }}"
+                                    {% ifequal i.index item.current_stock %} selected {% endifequal %}>{{ i.name }}
+                                ({{ i.address }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="to">To:</label>
+                    <select name="to" id="to" class="form-control">
+                        {% for i in post_offices %}
+                            <option value="{{ i.index }}">{{ i.name }} ({{ i.address }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button id="confirm_transfer" type="button" class="btn btn-primary">Confirm transfer</button>
+            </form>
         {% endif %}
     </div>
     <br><br><br><br><br><br><br><br><br><br>

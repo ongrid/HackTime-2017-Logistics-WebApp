@@ -13,17 +13,17 @@
         {% if error %}
             <span style="color: red">{{ error }}</span>
         {% endif %}
-        {% if postoffice %}
+        {% if name %}
             <h4>Search results</h4>
             <div class="search_result">
                 <table class="table">
                     <tr>
                         <td>Post office:</td>
-                        <td>{{ postoffice.name }}</td>
+                        <td>{{ name }}</td>
                     </tr>
                     <tr>
-                        <td>Post office index:</td>
-                        <td>{{ postoffice.index }}</td>
+                        <td>Post office address:</td>
+                        <td>{{ address }}</td>
                     </tr>
                 </table>
             </div>
@@ -33,13 +33,20 @@
                 {% for item in items %}
                     <tr>
                         <td>
-                            <form action="{% url 'search' %}">
-                                <input type="hidden" name="id" value="{{ item.pk }}">
-                                <button type="submit" class="btn-link">{{ item }}</button>
+                            <form method="post" action="{% url 'search' %}">
+                                <input type="hidden" name="id" value="{{ item.id }}">
+                                <button class="btn-link">{{ item.name }} ({{ item.id }})</button>
                             </form>
                         </td>
-                        <td {% if item.status == 'delivered' %}style="color: green" {% endif %}>
-                            {{ item.status }}
+                        <td>{{ item.name_from }}</td>
+                        <td><i class="fa fa-long-arrow-right" aria-hidden="true" style="color: green"></i></td>
+                        <td>
+                            {{ item.name_to }}
+                        </td>
+                        <td>
+                            {% if item.address_to == item.current_stock %}
+                                <span style="color: green;">Delivered</span>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

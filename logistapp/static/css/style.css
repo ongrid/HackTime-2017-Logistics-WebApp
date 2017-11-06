@@ -2041,4 +2041,12 @@ article img.pull-right, article .align-right {
 
 }
 
- 
+#preloader {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+    margin: 0 auto;
+    text-align: center;
+    top: 200px;
+    display: none;
+}

@@ -1,5 +1,5 @@
 {% load logistapp_filters %}
-<h5>Postal item #{{ item.pk }}</h5>
+
 <table width="100%" class="table">
     <tr>
         <td>Item:</td>
@@ -7,34 +7,31 @@
     </tr>
     <tr>
         <td>From:</td>
-        <td>{{ item.sender }} ({{ item.address_from.name }}, index: {{ item.address_from.index }})</td>
+        <td>{{ item.name_from }} ({{ item.address_from | get_stock_name }},
+            index: {{ item.address_from | get_stock_address }})
+        </td>
     </tr>
     <tr>
         <td>To:</td>
-        <td>{{ item.recipient }} ({{ item.address_to.name }}, index: {{ item.address_to.index }}))</td>
+        <td>{{ item.name_to }} ({{ item.address_to | get_stock_name }}, index: {{ item.address_to | get_stock_address }}))</td>
     </tr>
     <tr>
         <td>Weight:</td>
         <td>{{ item.weight }}</td>
     </tr>
     <tr>
-        <td>Status:</td>
-        <td {% if item.status == 'delivered' %}style="color: green" {% endif %}>{{ item.status | capfirst }}</td>
-    </tr>
-    <tr>
-        <td>Category:</td>
-        <td>{{ item.category }}</td>
+        <td>Now at:</td>
+        <td>{{ item.current_stock | get_stock_name }}, index: ({{ item.current_stock | get_stock_address }})</td>
     </tr>
     <tr>
         <td>Path:</td>
-        {% with item.path.get_queryset as path %}
-            <td>
-                {% for item in path %}
-                    {{ item.type | get_elevation_type }}
-                    <span style="color: green">{{ item.post_office.name }} ({{ item.post_office.index }})</span>, {{ item.datetime | date:'r' }}<br/>
+        <td>
+            <ul>
+                {% for path_item in path %}
+                    <li>{{ path_item.name }} ({{ path_item.address }}): {{ path_item.time | get_date }}</li>
                 {% endfor %}
-            </td>
-        {% endwith %}
+            </ul>
+        </td>
     </tr>
 </table>
 {% if item.status == 'awaits' %}

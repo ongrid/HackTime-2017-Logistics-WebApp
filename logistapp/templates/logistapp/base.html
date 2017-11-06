@@ -49,7 +49,6 @@
                         <li {% ifequal request.path '/search/' %}class="active" {% endifequal %}><a href="{% url 'search' %}">Search postal item</a></li>
                         <li {% ifequal request.path '/post_office/' %}class="active" {% endifequal %}><a href="{% url 'post_office' %}">Post office</a></li>
                         <li {% ifequal request.path '/registration_post_item/' %}class="active" {% endifequal %}><a href="{% url 'registration_post_item' %}">Registration of postal item</a></li>
-                        <li {% ifequal request.path '/arr_depa/' %}class="active" {% endifequal %}><a href="{% url 'arr_depa' %}">Registration of arrival / departure</a></li>
                     </ul>
                 </div>
             </div>
@@ -122,6 +121,7 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="{% static 'js/jquery.js' %}"></script>
 <script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/script.js' %}"></script>
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
 <script src="{% static 'js/jquery.fancybox.pack.js' %}"></script>
 <script src="{% static 'js/jquery.fancybox-media.js' %}"></script>

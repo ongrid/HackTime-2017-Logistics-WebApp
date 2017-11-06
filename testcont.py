@@ -1,3 +1,5 @@
+from binascii import Error
+
 from web3 import Web3, RPCProvider
 import json
 import time
@@ -35,7 +37,11 @@ class ContractHandler:
         return self.wait_mined(new_post_index)
 
     def get_stock_name(self, index):
-        name = Web3.toText(self.trim(self.contract.call().get_stock_name(index)))
+        stock_name = self.contract.call().get_stock_name(index)
+        try:
+            name = Web3.toText(self.trim(stock_name))
+        except Error:
+            name = stock_name
         if name != '':
             return name
         return False
@@ -98,7 +104,6 @@ class ContractHandler:
 
 
 cont = ContractHandler()
-cont.add_stock('New York', '0x1d963c56f257c23c0f6fc5abbb9b51bfb0f1cf57')
-cont.add_stock('Boston', '0x1d963c56f257c23c0f6fc5abbb9b51bfb0f1cf57')
-item = cont.add_item('Котлета', 0, 1, '1.2', 'Вася', 'Петя')
-print(item)
+
+stock = cont.get_stock_name(6)
+print(stock)

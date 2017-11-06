@@ -1,3 +1,5 @@
+from binascii import Error
+
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from web3 import Web3, HTTPProvider, RPCProvider
@@ -43,7 +45,11 @@ class ContractHandler:
         return self.wait_mined(new_post_index)
 
     def get_stock_name(self, index):
-        name = Web3.toText(self.trim(self.contract.call().get_stock_name(index)))
+        stock_name = self.contract.call().get_stock_name(index)
+        try:
+            name = Web3.toText(self.trim(stock_name))
+        except Error:
+            name = stock_name
         if name != '':
             return name
         return False
@@ -94,8 +100,9 @@ class ContractHandler:
     def transfer(self, item_id, address_from, address_to):
         stock_from = self.get_stock_name(address_from)
         stock_to = self.get_stock_name(address_to)
+        address = self.get_stock_address(address_from)
         path = self.get_item_path(item_id)
-        if len(path) > 0:
+        if len(path) > 0 and self.account.lower() == address.lower():
             if stock_from and stock_to and path[-1] == address_from:
                 self.unlock_account()
                 self.contract.transact({'from': self.account}).transfer(item_id, address_from, address_to)
@@ -112,33 +119,42 @@ def index(request):
 
 @csrf_exempt
 def search_item(request):
-    args = {}
     if request.method == 'POST':
-        cont = ContractHandler()
         item_id = int(request.POST.get('id'))
-        args['item'] = cont.get_item(item_id)
-        if args['item']:
-            path = cont.get_item_path(item_id)
-            times = cont.get_item_path_times(item_id)
-            args['path'] = []
-            time_iter = 0
-            for i in path:
-                name = cont.get_stock_name(i)
-                address = cont.get_stock_address(i)
-                args['path'].append({'name': name, 'address': address, 'time': times[time_iter]})
-                time_iter += 1
-            return HttpResponse(json.dumps(args), status=200)
-        else:
+        args = get_item(int(item_id))
+        return render(request, 'logistapp/search.html', args)
+    return render(request, 'logistapp/search.html', {})
+
+
+@csrf_exempt
+def search_item_api(request):
+    if request.method == 'POST':
+        item_id = int(request.POST.get('id'))
+        args = get_item(item_id)
+        if not args:
             return HttpResponse({}, status=404)
+        else:
+            return HttpResponse(json.dumps(args), status=200)
     else:
-        return render(request, 'logistapp/search.html')
+        return HttpResponse('You must use POST', status=404)
 
 
-def confirm_delivery(request):
-    if request.method == "POST":
-        item_pk = request.POST.get('item_pk')
-        Item.objects.filter(pk=item_pk).update(status='delivered')
-        return redirect('search')
+def get_item(id):
+    cont = ContractHandler()
+    args = {'item_pk': id, 'item': cont.get_item(id), 'post_offices': get_stocks()}
+    if args['item']:
+        path = cont.get_item_path(id)
+        times = cont.get_item_path_times(id)
+        args['path'] = []
+        time_iter = 0
+        for i in path:
+            name = cont.get_stock_name(i)
+            address = cont.get_stock_address(i)
+            args['path'].append({'name': name, 'address': address, 'time': times[time_iter]})
+            time_iter += 1
+    else:
+        return False
+    return args
 
 
 @csrf_exempt
@@ -146,51 +162,84 @@ def post_office(request):
     args = {}
     if request.method == 'POST':
         stock_id = int(request.POST.get('id'))
-        cont = ContractHandler()
-        args['name'] = cont.get_stock_name(stock_id)
-        if not args['name']:
-            return HttpResponse({}, status=404)
-        args['address'] = cont.get_stock_address(stock_id)
-        args['items'] = []
-        all_items = cont.get_all_items()
-        for item_i in all_items:
-            item = cont.get_item(item_i)
-            if item['current_stock'] == stock_id:
-                args['items'].append(item)
-        return HttpResponse(json.dumps(args), status=200)
+        args = get_post_office(stock_id)
+        if not args:
+            return render(request, 'logistapp/postoffice.html', {'error': 'Post Office #{} not found'.format(stock_id)})
     return render(request, 'logistapp/postoffice.html', args)
 
 
 @csrf_exempt
+def post_office_api(request):
+    if request.method == 'POST':
+        stock_id = int(request.POST.get('id'))
+        args = get_post_office(stock_id)
+        if not args:
+            return HttpResponse({}, status=404)
+        return HttpResponse(json.dumps(args), status=200)
+    return HttpResponse('You must use POST', status=404)
+
+
+def get_post_office(id):
+    cont = ContractHandler()
+    args = {'name': cont.get_stock_name(id)}
+    if not args['name']:
+        return False
+    args['address'] = cont.get_stock_address(id)
+    args['items'] = []
+    all_items = cont.get_all_items()
+    for item_i in all_items:
+        item = cont.get_item(item_i)
+        if item['current_stock'] == id:
+            item['id'] = item_i
+            args['items'].append(item)
+    return args
+
+
+@csrf_exempt
 def registration_post_item(request):
+    type_r = request.POST.get('type')
     args = {}
     if request.method == "POST":
-        print(request.POST)
+        name = request.POST.get('name')
+        name_from = request.POST.get('sender')
+        address_from = int(request.POST.get('post_office_from'))
+        name_to = request.POST.get('recipient')
+        address_to = int(request.POST.get('post_office_to'))
+        weight = request.POST.get('weight')
+        if address_from != address_to:
+            cont = ContractHandler()
+            args['added_item'] = cont.add_item(name, address_from, address_to, weight, name_from, name_to)
+        else:
+            args['error'] = 'You cant send to similar post office!'
     else:
-        cont = ContractHandler()
-        count = cont.get_stock_count()
-        args['stock_names'] = []
-        for i in range(count):
-            name = cont.get_stock_name(i)
-            if name:
-                address = cont.get_stock_address(i)
-                args['stock_names'].append({'name': cont.get_stock_name(i), 'index': i, 'address': address})
+        args['stock_names'] = get_stocks()
+    if type_r == 'api':
+        return HttpResponse(json.dumps(args), status=200)
     return render(request, 'logistapp/register_item.html', args)
 
 
-def arr_depa(request):
-    pass
+def get_stocks():
+    cont = ContractHandler()
+    stocks = []
+    count = cont.get_stock_count()
+    for i in range(count):
+        name = cont.get_stock_name(i)
+        if name:
+            address = cont.get_stock_address(i)
+            stocks.append({'name': name, 'index': i, 'address': address})
+    return stocks
 
 
+@csrf_exempt
 def set_arr_dep(request):
     if request.method == 'POST':
-        item_pk = request.POST.get('item_pk')
-        type_e = request.POST.get('type_e')
-        post_office_pk = request.POST.get('post_office_pk')
-        el = Elevation.objects.create(post_office_id=post_office_pk, type=type_e)
-        item = Item.objects.get(pk=item_pk)
-        if item.address_to_id == post_office_pk:
-            item.status = 'Awaits delivery'
-            item.save()
-        item.path.add(el)
-        return HttpResponse('ok', status=200)
+        item = int(request.POST.get('item'))
+        from_address = int(request.POST.get('from'))
+        to_address = int(request.POST.get('to'))
+        cont = ContractHandler()
+        tr = cont.transfer(item, from_address, to_address)
+        if not tr:
+            return HttpResponse('Transfer can\'t be accepted', status=200)
+        return HttpResponse('Your transfer will be confirmed soon', status=200)
+    else:
+        return HttpResponse('You must use POST', status=404)
